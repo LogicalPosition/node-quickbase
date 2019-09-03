@@ -846,8 +846,13 @@ const actions = {
 						}
 
 						return QuickBase.checkIsArrAndConvert(record.f).reduce((ret, field) => {
-							const fid = field.id;
-
+							var fid = "";
+							if (field){
+								fid = field.id;
+							}
+							else{
+								return ret;
+							}
 							if (field.hasOwnProperty('url')) {
 								ret[fid] = {
 									filename: field._,
