@@ -23,6 +23,7 @@ const merge = require('lodash.merge');
 const debugRequest = require('debug')('quickbase:request');
 const debugResponse = require('debug')('quickbase:response');
 const Promise = require('bluebird');
+const fs = require('fs');
 
 /* Backwards Compatibility */
 if (!Object.hasOwnProperty('extend') && Object.extend === undefined) {
@@ -583,7 +584,7 @@ class QueryBuilder {
 							resolve(result);
 						});
 					} else {
-						resolve(xmlResponse);
+            return reject(new QuickBaseError(3434, 'Error Processing Request', `Invalid content type: ${response.headers['content-type']}`));
 					}
 				});
 			});
@@ -689,7 +690,8 @@ const xmlNodeParsers = {
 	},
 	variables(val) {
 		return QuickBase.checkIsArrAndConvert(val.var).reduce((newVars, value) => {
-			newVars[value.name] = value._;
+			if (value && value.name)
+				newVars[value.name] = value._;
 
 			return newVars;
 		}, {});
@@ -839,6 +841,8 @@ const actions = {
 
 				if (results.table.hasOwnProperty('records')) {
 					results.table.records = QuickBase.checkIsArrAndConvert(results.table.records).map((record) => {
+						if (!record.f) return record;
+						throw new Error;
 						const ret = {};
 
 						if (query.options.includeRids) {
@@ -847,11 +851,17 @@ const actions = {
 
 						return QuickBase.checkIsArrAndConvert(record.f).reduce((ret, field) => {
 							var fid = "";
-							if (field){
+							try
+							{
 								fid = field.id;
 							}
-							else{
-								return ret;
+							catch(e)
+							{
+								fs.writeFile('QBBadResponse.txt', JSON.stringify(results), function (err) {
+									if (err) throw err;
+									console.log('QBBadResponse.txt Updated!');
+								});
+								throw e
 							}
 							if (field.hasOwnProperty('url')) {
 								ret[fid] = {
