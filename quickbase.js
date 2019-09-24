@@ -651,11 +651,13 @@ const xmlNodeParsers = {
 	},
 	lusers(val) {
 		return QuickBase.checkIsArrAndConvert(val).map((value) => {
+			if (!value) return null;
 			return {
 				id: value.id,
 				name: value._
 			};
-		});
+		}).filter(v => v);
+
 	},
 	queries(val) {
 		return QuickBase.checkIsArrAndConvert(val);
@@ -690,6 +692,8 @@ const xmlNodeParsers = {
 	},
 	variables(val) {
 		return QuickBase.checkIsArrAndConvert(val.var).reduce((newVars, value) => {
+			if (!value) return newVars;
+
 			if (value && value.name)
 				newVars[value.name] = value._;
 
