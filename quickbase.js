@@ -842,7 +842,6 @@ const actions = {
 				if (results.table.hasOwnProperty('records')) {
 					results.table.records = QuickBase.checkIsArrAndConvert(results.table.records).map((record) => {
 						if (!record.f) return record;
-						throw new Error;
 						const ret = {};
 
 						if (query.options.includeRids) {
